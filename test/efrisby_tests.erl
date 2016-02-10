@@ -4,11 +4,16 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
-simple_test() ->
+httpbin_get_request_test() ->
     erlang:display(
         inets:start()
     ),
-    erlang:display(
-        httpc:request("http://httpbin.org/get")
-    ),
-    ?assertEqual(ok, efrisby:create()).
+    ?assertEqual(ok, efrisby:get("http://httpbin.org/get?foo=bar", [
+        {status, 200},
+        {content_type, "application/json"},
+        {json, ".args", {
+            [
+                {<<"foo">>,<<"bar">>}
+            ]
+        }}
+    ])).
