@@ -15,8 +15,8 @@ get_root_data_test() ->
         ]
     },
 
-    ?assertEqual(Json, efrisby_json:get_data(".", Json)),
-    ?assertEqual(Json, efrisby_json:get_data(<<".">>, Json)).
+    ?assertEqual(Json, efrisby_json:get(".", Json)),
+    ?assertEqual(Json, efrisby_json:get(<<".">>, Json)).
 
 get_data_from_path_test() ->
     Args = {
@@ -30,7 +30,7 @@ get_data_from_path_test() ->
         ]
     },
 
-    ?assertEqual(Args, efrisby_json:get_data(".args", Json)).
+    ?assertEqual(Args, efrisby_json:get(".args", Json)).
 
 get_data_from_complex_path_test() ->
     Json = {
@@ -46,8 +46,8 @@ get_data_from_complex_path_test() ->
         ]
     },
 
-    ?assertEqual(<<"httpbin.org">>, efrisby_json:get_data(".headers.Host", Json)),
-    ?assertEqual(<<"httpbin.org">>, efrisby_json:get_data(<<".headers.Host">>, Json)).
+    ?assertEqual(<<"httpbin.org">>, efrisby_json:get(".headers.Host", Json)),
+    ?assertEqual(<<"httpbin.org">>, efrisby_json:get(<<".headers.Host">>, Json)).
 
 
 get_data_from_json_binary_test() ->

@@ -6,6 +6,9 @@
 %% Callbacks
 -export([
     get/2,
+    get/3,
+    post/3,
+    post/4,
     send/2,
     send/1,
     assert/2
@@ -18,29 +21,44 @@
 }).
 
 -record(request, {
-    body,
     host,
     method,
-    headers,
-    expectations
+    body = null,
+    headers = [],
+    expectations = []
 }).
 
-send(#request{} = Request) ->
-    efrisby:send(Request, #context{}).
+get(Host, Expectations) ->
+    send(get, Host, null, [], Expectations).
 
-send(#request{method=Method, host=Host, expectations=Expectations}, #context{} = _Context) ->
-    Response = httpc:request(Method, {Host, []}, [], []),
-    Result   = efrisby:assert(Expectations, Response),
+get(Host, Headers, Expectations) ->
+    send(get, Host, null, Headers, Expectations).
+
+post(Host, Body, Expectations) ->
+    send(post, Host, Body, [], Expectations).
+
+post(Host, Body, Headers, Expectations) ->
+    send(post, Host, Body, Headers, Expectations).
+
+send(Method, Host, Body, Headers, Expectations) ->
+    send(#request{
+        expectations=Expectations,
+        headers=Headers,
+        method=Method,
+        host=Host,
+        body=Body
+    }).
+
+send(#request{} = Request) ->
+    send(Request, #context{}).
+
+send(#request{method=Method, expectations=Expectations} = Request, #context{} = Context) ->
+    Response = httpc:request(Method, create_request(Request, Context), [], []),
+    Result   = assert(Expectations, Response),
     Result.
 
-get(Host, Expectations) ->
-    efrisby:send(#request{
-        method=get,
-        host=Host,
-        expectations=Expectations}).
-
 assert(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
-    lists:foreach(fun(Expec) -> efrisby:assert(Expec, Response) end, Expectations);
+    lists:foreach(fun(Expec) -> assert(Expec, Response) end, Expectations);
 
 assert({content_type, ExpectedContentType}, {_Status, Headers, _Body}) ->
     ?assertEqual(
@@ -65,6 +83,16 @@ assert({body_contains, ExpectedBody}, {_Status, _Headers, Body}) ->
 assert({status, ExpectedStatus}, {{_Version, ActualStatus, _ReasonPhrase}, _Headers, _Body}) ->
     ?assertEqual(ExpectedStatus, ActualStatus).
 
+create_request(#request{host=Host, headers=[], body=null}, #context{} = _Context) ->
+    {Host, []};
+
+create_request(#request{ host=Host, headers=Headers, body=Body}, #context{} = _Context) ->
+    {
+        Host,
+        efrisby_converter:encode_headers(Headers),
+        "application/json",
+        efrisby_json:encode(Body)
+    }.
 
 %% endif (TEST).
 -endif.
