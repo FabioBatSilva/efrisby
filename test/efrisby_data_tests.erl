@@ -29,6 +29,17 @@ get_data_from_path_test() ->
 
     ?assertEqual(Args, efrisby_data:get(".args", Json)).
 
+get_element_from_list_path_test() ->
+    List = [<<"first">>, <<"second">>, <<"third">>],
+    Json = {
+        [
+            {<<"list">>, List}
+        ]
+    },
+
+    ?assertEqual(List, efrisby_data:get(".list", Json)),
+    ?assertEqual(<<"second">>, efrisby_data:get(".list.2", Json)).
+
 get_data_from_complex_path_test() ->
     Json = {
         [

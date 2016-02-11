@@ -7,11 +7,19 @@ get_request_test() ->
     ?assertEqual(ok, efrisby:get("http://httpbin.org/get?foo=bar", [
         {status, 200},
         {content_type, "application/json"},
+        {json_types, ".", [
+            {<<"args">>, tuple},
+            {<<"args.foo">>, bitstring},
+            {<<"url">>, bitstring}
+        ]},
         {json, ".args", {
             [
-                {<<"foo">>,<<"bar">>}
+                {<<"foo">>, <<"bar">>}
             ]
-        }}
+        }},
+        {json, ".headers", [
+            {<<"Host">>, <<"httpbin.org">>}
+        ]}
     ])).
 
 post_request_test() ->
