@@ -1,8 +1,5 @@
 -module(efrisby_tests).
-
--ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
--endif.
 
 get_request_test() ->
     inets:start(),

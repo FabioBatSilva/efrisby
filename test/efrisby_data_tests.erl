@@ -1,8 +1,5 @@
--module(efrisby_json_tests).
-
--ifdef(TEST).
+-module(efrisby_data_tests).
 -include_lib("eunit/include/eunit.hrl").
--endif.
 
 get_root_data_test() ->
     Json = {
@@ -15,8 +12,8 @@ get_root_data_test() ->
         ]
     },
 
-    ?assertEqual(Json, efrisby_json:get(".", Json)),
-    ?assertEqual(Json, efrisby_json:get(<<".">>, Json)).
+    ?assertEqual(Json, efrisby_data:get(".", Json)),
+    ?assertEqual(Json, efrisby_data:get(<<".">>, Json)).
 
 get_data_from_path_test() ->
     Args = {
@@ -30,7 +27,7 @@ get_data_from_path_test() ->
         ]
     },
 
-    ?assertEqual(Args, efrisby_json:get(".args", Json)).
+    ?assertEqual(Args, efrisby_data:get(".args", Json)).
 
 get_data_from_complex_path_test() ->
     Json = {
@@ -46,13 +43,13 @@ get_data_from_complex_path_test() ->
         ]
     },
 
-    ?assertEqual(<<"httpbin.org">>, efrisby_json:get(".headers.Host", Json)),
-    ?assertEqual(<<"httpbin.org">>, efrisby_json:get(<<".headers.Host">>, Json)).
+    ?assertEqual(<<"httpbin.org">>, efrisby_data:get(".headers.Host", Json)),
+    ?assertEqual(<<"httpbin.org">>, efrisby_data:get(<<".headers.Host">>, Json)).
 
 
 get_data_from_json_binary_test() ->
     Body     = <<"{\"args\":{\"foo\":\"bar\"}}">>,
-    Actual   = efrisby_json:get(".args", Body),
+    Actual   = efrisby_data:get(".args", Body),
     Expected = {
         [
             {<<"foo">>,<<"bar">>}
@@ -63,7 +60,7 @@ get_data_from_json_binary_test() ->
 
 get_data_from_json_string_test() ->
     Body     = "{\"args\":{\"foo\":\"bar\"}}",
-    Actual   = efrisby_json:get(".args", Body),
+    Actual   = efrisby_data:get(".args", Body),
     Expected = {
         [
             {<<"foo">>,<<"bar">>}
