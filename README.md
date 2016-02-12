@@ -1,4 +1,4 @@
-# Phisby
+# efrisby
 
 [![Build Status](https://travis-ci.org/FabioBatSilva/efrisby.svg)](https://travis-ci.org/FabioBatSilva/efrisby)
 
@@ -13,7 +13,7 @@ By adding the following dependency to your ```rebar.config``` file :
 
 ```erlang
 
-%% Plugin dependency
+%% Rebar deps
 {deps, [
     {efrisby, ".*", {git, "git://github.com/FabioBatSilva/efrisby.git"}}
 ]}.
