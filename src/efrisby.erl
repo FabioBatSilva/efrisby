@@ -6,6 +6,8 @@
     get/3,
     post/3,
     post/4,
+    put/3,
+    put/4,
     send/2,
     send/1
 ]).
@@ -35,6 +37,12 @@ post(Host, Body, Expectations) ->
 
 post(Host, Body, Headers, Expectations) ->
     send(post, Host, Body, Headers, Expectations).
+
+put(Host, Body, Expectations) ->
+    send(put, Host, Body, [], Expectations).
+
+put(Host, Body, Headers, Expectations) ->
+    send(put, Host, Body, Headers, Expectations).
 
 send(Method, Host, Body, Headers, Expectations) ->
     send(#request{

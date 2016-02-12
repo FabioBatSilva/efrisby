@@ -2,6 +2,7 @@
 /rebar
 *~
 *.orig
+*.deps.plt
 .*.swp
 /rt.work
 /rebar.cmd

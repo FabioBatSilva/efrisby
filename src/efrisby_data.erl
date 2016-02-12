@@ -28,6 +28,9 @@ get(Path, Value, string) ->
     get_data(Path, jiffy:decode(Value));
 
 get(Path, Value, tuple) ->
+    get_data(Path, Value);
+
+get(Path, Value, list) ->
     get_data(Path, Value).
 
 get_data(".", Value) ->
@@ -35,6 +38,9 @@ get_data(".", Value) ->
 
 get_data(<<".">>, Value) ->
     Value;
+
+get_data(Path, Value) when erlang:is_list(Value) ->
+    get_data_value(Path, Value);
 
 get_data(Path, Value) ->
     Parts = get_path_parts(Path),
@@ -53,6 +59,9 @@ get_data_value(Key, List) ->
 
 get_path_parts(Path) when erlang:is_bitstring(Path)->
     get_path_parts(erlang:binary_to_list(Path));
+
+get_path_parts(Path) when erlang:is_atom(Path)->
+    get_path_parts(erlang:atom_to_list(Path));
 
 get_path_parts(Path) ->
     Parts = string:tokens(Path, "."),

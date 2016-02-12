@@ -5,6 +5,8 @@
     evaluate/2
 ]).
 
+-spec evaluate( tuple() , tuple()) -> 'ok' | none().
+
 evaluate(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
     lists:foreach(fun(Expec) -> evaluate(Expec, Response) end, Expectations);
 
@@ -20,6 +22,18 @@ evaluate({json, RootPath, [{SubPath, ExpectedJson}|_List]}, Response) ->
 evaluate({json, Path, ExpectedJson}, {_Status, _Headers, Body} ) ->
     assert_equal(ExpectedJson, efrisby_data:get(Path, Body), {json, Path});
 
+evaluate({headers, ExpectedHeaders}, Response) ->
+    evaluate({headers, ".", ExpectedHeaders}, Response);
+
+evaluate({headers, RootPath, [{SubPath, ExpectedHeaders}|_List]}, Response) ->
+    evaluate({headers, path_concat(RootPath, SubPath), ExpectedHeaders}, Response);
+
+evaluate({headers, Path, ExpectedHeaders}, {_Status, Headers, _Body} ) ->
+    assert_equal(ExpectedHeaders, efrisby_data:get(Path, Headers), {json, Headers});
+
+evaluate({json_types, ExpectedTypes}, Response) ->
+    evaluate({json_types, ".", ExpectedTypes}, Response);
+
 evaluate({json_types, RootPath, [{SubPath, ExpectedType}|_List]}, {_Status, _Headers, Body} ) ->
     ActualPath  = path_concat(RootPath, SubPath),
     ActualValue = efrisby_data:get(ActualPath, Body),
@@ -32,9 +46,9 @@ evaluate({json_types, RootPath, [{SubPath, ExpectedType}|_List]}, {_Status, _Hea
 
 evaluate({body_contains, ExpectedBody}, {_Status, _Headers, Body}) ->
     ActualBody = case (efrisby_data:get_type(Body)) of
-        string -> Body;
-        binary -> erlang:binary_to_list(Body);
-        _      -> fail(ExpectedBody, Body, {body_contains})
+        string    -> Body;
+        bitstring -> erlang:binary_to_list(Body);
+        _         -> fail(ExpectedBody, Body, {body_contains})
     end,
 
     assert_contains(ExpectedBody, ActualBody, {body_contains});

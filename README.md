@@ -23,14 +23,16 @@ By adding the following dependency to your ```rebar.config``` file :
 ## Basic Usage.
 
 ```erlang
+inets:start(),
+%% > ok
 
 efrisby:get("http://localhost/api/1.0/users/3.json", [
     {status, 200},
     {content_type, "application/json"},
     {json_types, [
-        {<<"id">>, 3},
-        {<<"is_admin">>, false},
-        {<<"username">>, <<"johndoe">>}
+        {<<"id">>, integer},
+        {<<"is_admin">>, boolean},
+        {<<"username">>, bitstring}
     ]},
     {json, {
         [
@@ -40,5 +42,6 @@ efrisby:get("http://localhost/api/1.0/users/3.json", [
         ]
     }}
 ]).
+%% > ok
 
 ```
