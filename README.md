@@ -42,6 +42,6 @@ efrisby:get("http://localhost/api/1.0/users/3.json", [
         ]
     }}
 ]).
-%% > ok
+%% > {ok, Response}
 
 ```

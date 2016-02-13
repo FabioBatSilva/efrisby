@@ -4,70 +4,151 @@
 -export([
     get/2,
     get/3,
-    post/3,
-    post/4,
+
+    put/2,
     put/3,
     put/4,
+
+    head/2,
+    head/3,
+
+    post/2,
+    post/3,
+    post/4,
+
+    patch/2,
+    patch/3,
+    patch/4,
+
+    delete/2,
+    delete/3,
+    delete/4,
+
+    options/2,
+    options/3,
+
     send/2,
-    send/1
+    send/3
 ]).
 
-%% records
+put(Url, Expectations) ->
+    put(Url, null, Expectations).
 
--record(context, {
-    host
-}).
+put(Url, Body, Expectations) ->
+    put(Url, Body, Expectations, []).
 
--record(request, {
-    host,
-    method,
-    body = null,
-    headers = [],
-    expectations = []
-}).
+put(Url, Body, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {body, Body},
+        {method, put}
+    ], Options), Expectations).
 
-get(Host, Expectations) ->
-    send(get, Host, null, [], Expectations).
+post(Url, Expectations) ->
+    post(Url, null, Expectations).
 
-get(Host, Headers, Expectations) ->
-    send(get, Host, null, Headers, Expectations).
+post(Url, Body, Expectations) ->
+    post(Url, Body, Expectations, []).
 
-post(Host, Body, Expectations) ->
-    send(post, Host, Body, [], Expectations).
+post(Url, Body, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {body, Body},
+        {method, post}
+    ], Options), Expectations).
 
-post(Host, Body, Headers, Expectations) ->
-    send(post, Host, Body, Headers, Expectations).
+patch(Url, Expectations) ->
+    patch(Url, null, Expectations).
 
-put(Host, Body, Expectations) ->
-    send(put, Host, Body, [], Expectations).
+patch(Url, Body, Expectations) ->
+    patch(Url, Body, Expectations, []).
 
-put(Host, Body, Headers, Expectations) ->
-    send(put, Host, Body, Headers, Expectations).
+patch(Url, Body, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {body, Body},
+        {method, patch}
+    ], Options), Expectations).
 
-send(Method, Host, Body, Headers, Expectations) ->
-    send(#request{
-        expectations=Expectations,
-        headers=Headers,
-        method=Method,
-        host=Host,
-        body=Body
-    }).
+delete(Url, Expectations) ->
+    delete(Url, null, Expectations).
 
-send(#request{} = Request) ->
-    send(Request, #context{}).
+delete(Url, Body, Expectations) ->
+    delete(Url, Body, Expectations, []).
 
-send(#request{method=Method, expectations=Expectations} = Request, #context{} = Context) ->
-    Response = httpc:request(Method, create_request(Request, Context), [], []),
-    Result   = efrisby_constraint:evaluate(Expectations, Response),
-    Result.
+delete(Url, Body, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {body, Body},
+        {method, delete}
+    ], Options), Expectations).
 
-create_request(#request{host=Host, headers=[], body=null}, #context{} = _Context) ->
-    {Host, []};
+get(Url, Expectations) ->
+    get(Url, Expectations, []).
 
-create_request(#request{ host=Host, headers=Headers, body=Body}, #context{} = _Context) ->
+get(Url, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {method, get}
+    ], Options), Expectations).
+
+head(Url, Expectations) ->
+    head(Url, Expectations, []).
+
+head(Url, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {method, head}
+    ], Options), Expectations).
+
+options(Url, Expectations) ->
+    options(Url, Expectations, []).
+
+options(Url, Expectations, Options) ->
+    send(create_options([
+        {url, Url},
+        {method, options}
+    ], Options), Expectations).
+
+send(Options, Expectations) ->
+    send(Options, Expectations, []).
+
+send(Options, Expectations, _Context) ->
+    Url         = proplists:get_value(url, Options),
+    Method      = proplists:get_value(method, Options),
+    Body        = proplists:get_value(body, Options, null),
+    Headers     = proplists:get_value(headers, Options, []),
+    ContentType = proplists:get_value(content_type, Options, "application/json"),
+    Request     = create_request(Url, Body, Headers, ContentType),
+    Response    = httpc:request(Method, Request, [], []),
+    Result      = efrisby_constraint:evaluate(Expectations, Response),
+
+    case (Result) of
+        ok -> Response;
+        _  -> Result
+    end.
+
+create_options(Options, Overrides) ->
+    Keys = proplists:get_keys(Options ++ Overrides),
+    Func = fun(Key, List) ->
+        Default = proplists:get_value(Key, Options),
+        Element = proplists:get_value(Key, Overrides, Default),
+
+        [{Key, Element} | List]
+    end,
+
+    lists:foldl(Func, [], Keys).
+
+create_request(Url, null, [], _ContentType) ->
+    {Url, []};
+
+create_request(Url, null, Headers, _ContentType) ->
+    {Url, Headers};
+
+create_request(Url, Body, Headers, ContentType) ->
     {
-        Host,
+        Url,
         efrisby_data:encode_headers(Headers),
-        "application/json",
+        ContentType,
         efrisby_data:json_encode(Body)
     }.
