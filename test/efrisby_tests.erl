@@ -10,7 +10,8 @@ efrisby_test_() ->
             fun put_request/0,
             fun post_request/0,
             fun delete_request/0,
-            fun options_request/0
+            fun options_request/0,
+            fun context_options_request/0
         ]
     }.
 
@@ -118,3 +119,34 @@ options_request() ->
     ?assertMatch({ok,_}, efrisby:options("http://httpbin.org/get", [
         {status, 200}
     ])).
+
+
+context_options_request() ->
+
+    Args = {
+        [
+            {<<"foo">>, <<"bar">>}
+        ]
+    },
+
+    Config = [
+        {base_url, "http://httpbin.org"},
+        {headers , [
+            {"Accept", "application/json"},
+            {<<"X-Extra-Header">>, <<"FooBar">>}
+        ]}
+    ],
+
+    Options = [
+        {config, Config}
+    ],
+
+    Expectations = [
+        {status, 200},
+        {json, ".args", Args},
+        {content_type, "application/json"},
+        {json, ".headers.X-Extra-Header", <<"FooBar">>},
+        {json, ".headers.Accept", <<"application/json">>}
+    ],
+
+    ?assertMatch({ok,_}, efrisby:get("/get?foo=bar", Expectations, Options)).

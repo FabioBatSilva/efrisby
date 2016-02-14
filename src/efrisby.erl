@@ -27,7 +27,6 @@
     options/2,
     options/3,
 
-    send/2,
     send/3
 ]).
 
@@ -37,12 +36,15 @@ put(Url, Expectations) ->
 put(Url, Body, Expectations) ->
     put(Url, Body, Expectations, []).
 
-put(Url, Body, Expectations, Options) ->
-    send(create_options([
+put(Url, Body, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {body, Body},
         {method, put}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 post(Url, Expectations) ->
     post(Url, null, Expectations).
@@ -50,12 +52,15 @@ post(Url, Expectations) ->
 post(Url, Body, Expectations) ->
     post(Url, Body, Expectations, []).
 
-post(Url, Body, Expectations, Options) ->
-    send(create_options([
+post(Url, Body, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {body, Body},
         {method, post}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 patch(Url, Expectations) ->
     patch(Url, null, Expectations).
@@ -63,12 +68,15 @@ patch(Url, Expectations) ->
 patch(Url, Body, Expectations) ->
     patch(Url, Body, Expectations, []).
 
-patch(Url, Body, Expectations, Options) ->
-    send(create_options([
+patch(Url, Body, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {body, Body},
         {method, patch}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 delete(Url, Expectations) ->
     delete(Url, null, Expectations).
@@ -76,57 +84,59 @@ delete(Url, Expectations) ->
 delete(Url, Body, Expectations) ->
     delete(Url, Body, Expectations, []).
 
-delete(Url, Body, Expectations, Options) ->
-    send(create_options([
+delete(Url, Body, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {body, Body},
         {method, delete}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 get(Url, Expectations) ->
     get(Url, Expectations, []).
 
-get(Url, Expectations, Options) ->
-    send(create_options([
+get(Url, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {method, get}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 head(Url, Expectations) ->
     head(Url, Expectations, []).
 
-head(Url, Expectations, Options) ->
-    send(create_options([
+head(Url, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {method, head}
-    ], Options), Expectations).
+    ], Opts),
+
+    send(Options, Expectations, Config).
 
 options(Url, Expectations) ->
     options(Url, Expectations, []).
 
-options(Url, Expectations, Options) ->
-    send(create_options([
+options(Url, Expectations, Opts) ->
+    Config  = get_config(Opts),
+    Options = create_options([
         {url, Url},
         {method, options}
-    ], Options), Expectations).
+    ], Opts),
 
-send(Options, Expectations) ->
-    send(Options, Expectations, []).
+    send(Options, Expectations, Config).
 
-send(Options, Expectations, _Context) ->
-    Url         = proplists:get_value(url, Options),
-    Method      = proplists:get_value(method, Options),
-    Body        = proplists:get_value(body, Options, null),
-    Headers     = proplists:get_value(headers, Options, []),
-    ContentType = proplists:get_value(content_type, Options, "application/json"),
-    Request     = create_request(Url, Body, Headers, ContentType),
-    Response    = httpc:request(Method, Request, [], []),
-    Result      = efrisby_constraint:evaluate(Expectations, Response),
+send(Options, Expectations, Config) ->
+    Request  = create_request(Options, Config),
+    Method   = proplists:get_value(method, Options),
+    Response = httpc:request(Method, Request, [], []),
+    ok       = efrisby_constraint:evaluate(Expectations, Response),
 
-    case (Result) of
-        ok -> Response;
-        _  -> Result
-    end.
+    Response.
 
 create_options(Options, Overrides) ->
     Keys = proplists:get_keys(Options ++ Overrides),
@@ -139,16 +149,42 @@ create_options(Options, Overrides) ->
 
     lists:foldl(Func, [], Keys).
 
-create_request(Url, null, [], _ContentType) ->
-    {Url, []};
+create_request(Options, Config) ->
+    Url         = get_url_option(Options, Config),
+    Body        = proplists:get_value(body, Options, null),
+    Headers     = get_option(headers, Options, Config, []),
+    ContentType = get_option(content_type, Options, Config, "application/json"),
 
-create_request(Url, null, Headers, _ContentType) ->
-    {Url, Headers};
+    case (Body) of
+        null -> {Url, efrisby_data:encode_headers(Headers)};
+        _    -> {
+            Url,
+            efrisby_data:encode_headers(Headers),
+            ContentType,
+            efrisby_data:json_encode(Body)
+        }
+    end.
 
-create_request(Url, Body, Headers, ContentType) ->
-    {
-        Url,
-        efrisby_data:encode_headers(Headers),
-        ContentType,
-        efrisby_data:json_encode(Body)
-    }.
+get_config(Options) ->
+    proplists:get_value(config, Options, []).
+
+get_option(Name, Options, Config, Default) ->
+    ConfigHeaders  = proplists:get_value(Name, Config, Default),
+    OptionsHeaders = proplists:get_value(Name, Options, ConfigHeaders),
+
+    OptionsHeaders.
+
+get_url_option(Options, Config) ->
+    Url     = proplists:get_value(url, Options),
+    BaseUrl = proplists:get_value(base_url, Config, null),
+
+    create_request_url(BaseUrl, Url).
+
+create_request_url(null, Url) ->
+    Url;
+
+create_request_url(BaseUrl, Url) ->
+    case (http_uri:parse(Url)) of
+        {ok, _} -> Url;
+        _       -> lists:concat([BaseUrl, Url])
+    end.

@@ -5,7 +5,7 @@
 A REST API testing framework for erlang inspired by frisby-js
 
 ## Documentation
-Documentation for this library can be found on [readthedocs](http://efrisby.readthedocs.org/en/latest)
+DBD
 
 ## Installation
 

@@ -7,6 +7,10 @@
 
 -spec evaluate( tuple() , tuple()) -> 'ok' | none().
 
+
+evaluate(_Expectations, {error, Error}) ->
+    fail(ok, Error, {request});
+
 evaluate(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
     lists:foreach(fun(Expec) -> evaluate(Expec, Response) end, Expectations);
 
