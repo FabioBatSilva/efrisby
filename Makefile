@@ -48,6 +48,6 @@ test: test_eunit
 test_eunit:
 	@$(REBAR) eunit
 
-travis: clean distclean
+travis: clean distclean deps test
 
 .PHONY: clean deps test compile dialyzer
