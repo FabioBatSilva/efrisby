@@ -31,11 +31,9 @@ get_request() ->
     ], ?API_CONFIG)).
 
 post_request() ->
-    Body = {
-        [
-            {<<"foo">>,<<"bar">>}
-        ]
-    },
+    Body = [
+        {<<"foo">>,<<"bar">>}
+    ],
 
     Expectations = [
         {status, 200},
@@ -46,7 +44,7 @@ post_request() ->
         {json_types, [
             {foo, bitstring}
         ]},
-        {json, [
+        {json, ".body", [
             {foo, <<"bar">>}
         ]}
     ],

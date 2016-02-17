@@ -16,16 +16,16 @@ encode_headers(Headers) ->
     Result.
 
 json_encode(Value) ->
-    jiffy:encode(Value).
+    jsx:encode(Value).
 
 get(Path, Value) ->
     get(Path, Value, get_type(Value)).
 
-get(Path, Value, bitstring) ->
-    get_data(Path, jiffy:decode(Value));
-
 get(Path, Value, string) ->
-    get_data(Path, jiffy:decode(Value));
+    get(Path, erlang:list_to_binary(Value), bitstring);
+
+get(Path, Value, bitstring) ->
+    get_data(Path, jsx:decode(Value));
 
 get(Path, Value, tuple) ->
     get_data(Path, Value);
@@ -39,17 +39,11 @@ get_data(".", Value) ->
 get_data(<<".">>, Value) ->
     Value;
 
-get_data(Path, Value) when erlang:is_list(Value) ->
-    get_data_value(Path, Value);
-
 get_data(Path, Value) ->
     Parts = get_path_parts(Path),
     Func  = fun(Part, Data) -> get_data_value(Part, Data) end,
 
     lists:foldl(Func, Value, Parts).
-
-get_data_value(Key, {List}) ->
-    get_data_value(Key, List);
 
 get_data_value(Key, List) ->
     case (is_integer_binary(Key)) of
@@ -72,7 +66,7 @@ get_path_parts(Path) ->
 value_to_list(Value) when erlang:is_bitstring(Value) ->
     erlang:binary_to_list(Value);
 
-value_to_list(Value) when erlang:is_bitstring(Value) ->
+value_to_list(Value) when erlang:is_integer(Value) ->
     erlang:integer_to_list(Value);
 
 value_to_list(Value) ->

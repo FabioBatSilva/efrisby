@@ -8,12 +8,12 @@ evaluate_content_type_test() ->
     ExpectationFail = {content_type, "application/xml"},
     Response        = {
         {"HTTP/1.1",200,"OK"},
-        [ {"content-type","application/json"} ],
+        [ {"content-type", "application/json"} ],
         "[1,2,3]"
     },
 
-    ExpectedException = {efrisby_expectation_failed,[
-        {context,{content_type,"application/xml"}},
+    ExpectedException = {efrisby_expectation_failed, [
+        {context,{content_type}},
         {expected,"application/xml"},
         {actual,"application/json"}
     ]},
@@ -59,7 +59,7 @@ evaluate_json_test() ->
 
 evaluate_json_types_test() ->
     ExpectationOk   = {json_types, ".", [
-        {<<"args">>, tuple},
+        {<<"args">>, list},
         {<<"args.foo">>, bitstring}
     ]},
     ExpectationFail = {json_types, ".", [
@@ -73,7 +73,7 @@ evaluate_json_types_test() ->
     ExpectedException = {efrisby_expectation_failed, [
         {context,{json_types,"args"}},
         {expected,integer},
-        {actual,tuple}
+        {actual,list}
     ]},
 
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),

@@ -1,41 +1,33 @@
-ERL           := $(shell which erl)
-REBAR         := $(shell which rebar)
-ERLFLAGS      := -pa $(CURDIR)/ebin -pa $(CURDIR)/deps/*/ebin
+REBAR := $(shell which rebar3)
 
 ifeq ($(REBAR),)
-$(error "Rebar not available on PATH")
-endif
-
-ifeq ($(ERL),)
-$(error "Erlang must be available on PATH")
+$(error "rebar3 is not available on your PATH")
 endif
 
 clean:
-	@rm -rf $(CURDIR)/.rebar/erlcinfo $(CURDIR)/ebin/*.beam $(CURDIR)/.eunit $(CURDIR)/.rebar
+	@rm -rf $(CURDIR)/_build $(CURDIR)/ebin/*.beam
 
 clean-deps:
 	@rm -rf $(CURDIR)/deps
 
 distclean: clean-deps
 
-deps:
-	@$(REBAR) get-deps compile
+dialyzer:
+	@$(REBAR) dialyzer
 
 compile:
 	@$(REBAR) compile
 
-reltool:
-	cd $(CURDIR)/rel && rebar compile generate; cd $(CURDIR)
+release:
+	@$(REBAR) release
 
 console:
-	$(CURDIR)/rel/myapi/bin/myapi console
+	$(CURDIR)/_build/default/rel/myapi/bin/myapi console
 
 start:
-	$(CURDIR)/rel/myapi/bin/myapi start | exit 0
+	$(CURDIR)/_build/default/rel/myapi/bin/myapi start | exit 0
 
-test: start
+test:
 	@$(REBAR) eunit
 
-travis: clean distclean deps test
-
-.PHONY: clean deps test compile reltool console
+.PHONY: clean deps compile dialyzer test

@@ -14,8 +14,8 @@ evaluate(_Expectations, {error, Error}) ->
 evaluate(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
     lists:foreach(fun(Expec) -> evaluate(Expec, Response) end, Expectations);
 
-evaluate({content_type, ExpectedContentType} = Ctx, {_Status, Headers, _Body}) ->
-    assert_equal(ExpectedContentType, proplists:get_value("content-type", Headers), Ctx);
+evaluate({content_type, ExpectedContentType}, {_Status, Headers, _Body}) ->
+    assert_equal(ExpectedContentType, proplists:get_value("content-type", Headers), {content_type});
 
 evaluate({json, ExpectedJson}, Response) ->
     evaluate({json, ".", ExpectedJson}, Response);
@@ -32,8 +32,8 @@ evaluate({headers, ExpectedHeaders}, Response) ->
 evaluate({headers, RootPath, [{SubPath, ExpectedHeaders}|_List]}, Response) ->
     evaluate({headers, path_concat(RootPath, SubPath), ExpectedHeaders}, Response);
 
-evaluate({headers, Path, ExpectedHeaders}, {_Status, Headers, _Body} ) ->
-    assert_equal(ExpectedHeaders, efrisby_data:get(Path, Headers), {json, Headers});
+evaluate({headers, Name, ExpectedHeaders}, {_Status, Headers, _Body} ) ->
+    assert_equal(ExpectedHeaders, proplists:get_value(Name, Headers), {headers, Headers});
 
 evaluate({json_types, ExpectedTypes}, Response) ->
     evaluate({json_types, ".", ExpectedTypes}, Response);

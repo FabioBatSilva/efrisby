@@ -3,37 +3,44 @@
 
 -export([
     init/3,
-    handle_request/2,
     allowed_methods/2,
-    content_types_accepted/2,
-    content_types_provided/2
+    handle_get_request/2,
+    handle_post_request/2,
+    content_types_provided/2,
+    content_types_accepted/2
 ]).
 
 init(_Transport, _Req, []) ->
     {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-    {[
-        <<"GET">>,
-        <<"HEAD">>,
-        <<"POST">>,
-        <<"PUT">>,
-        <<"PATCH">>,
-        <<"DELETE">>,
-        <<"OPTIONS">>
-    ], Req, State}.
+    {[<<"GET">>, <<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
-    {[
-        {<<"application/json">>, handle_request}
-    ], Req, State}.
+    {[{'*', handle_post_request}], Req, State}.
 
 content_types_provided(Req, State) ->
     {[
-        {<<"application/json">>, handle_request}
+        {<<"application/json">>, handle_get_request}
     ], Req, State}.
 
-handle_request(Req, State) ->
-    {ok, Body, _} = cowboy_req:body(Req),
+handle_get_request(Req, State) ->
+    {response_body(Req), Req, State}.
 
-    {Body, Req, State}.
+handle_post_request(Req, State) ->
+    Body = response_body(Req),
+    Resp = cowboy_req:set_resp_body(Body, Req),
+
+    {true, Resp, State}.
+
+response_body(Req) ->
+    {Url, _}       = cowboy_req:url(Req),
+    {ok, Body, _}  = cowboy_req:body(Req),
+    {Headers, _}   = cowboy_req:headers(Req),
+    ResponseValues = [
+        {<<"url">>, Url},
+        {<<"body">>, Body},
+        {<<"headers">>, Headers}
+    ],
+
+    jsx:encode(ResponseValues).

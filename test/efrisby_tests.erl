@@ -26,15 +26,13 @@ get_request() ->
         {status, 200},
         {content_type, "application/json"},
         {json_types, ".", [
-            {<<"args">>, tuple},
-            {<<"args.foo">>, bitstring},
-            {<<"url">>, bitstring}
+            {<<"args">>, list},
+            {<<"url">>, bitstring},
+            {<<"args.foo">>, bitstring}
         ]},
-        {json, ".args", {
-            [
-                {<<"foo">>, <<"bar">>}
-            ]
-        }},
+        {json, ".args",[
+            {<<"foo">>, <<"bar">>}
+        ]},
         {json, ".headers", [
             {<<"Host">>, <<"httpbin.org">>}
         ]}
@@ -58,11 +56,9 @@ get_request() ->
     ?assertMatch({{_Version, _Status, _ReasonPhrase}, _Headers, _Body}, Response).
 
 post_request() ->
-    Body = {
-        [
-            {<<"foo">>,<<"bar">>}
-        ]
-    },
+    Body = [
+        {<<"foo">>,<<"bar">>}
+    ],
 
     Options = [
         {headers , [
@@ -83,11 +79,9 @@ post_request() ->
     ?assertMatch({ok,_}, efrisby:post("http://httpbin.org/post", Body, Expectations, Options)).
 
 put_request() ->
-    Body = {
-        [
-            {<<"foo">>, <<"bar">>}
-        ]
-    },
+    Body = [
+        {<<"foo">>, <<"bar">>}
+    ],
 
     Options = [
         {headers , [
@@ -123,11 +117,9 @@ options_request() ->
 
 context_options_request() ->
 
-    Args = {
-        [
-            {<<"foo">>, <<"bar">>}
-        ]
-    },
+    Args = [
+        {<<"foo">>, <<"bar">>}
+    ],
 
     Config = [
         {base_url, "http://httpbin.org"},

@@ -1,5 +1,7 @@
 /ebin/*.beam
+_build
 /rebar
+rebar.lock
 *~
 *.orig
 *.deps.plt

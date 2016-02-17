@@ -34,13 +34,11 @@ efrisby:get("http://localhost/api/1.0/users/3.json", [
         {<<"is_admin">>, boolean},
         {<<"username">>, bitstring}
     ]},
-    {json, {
-        [
-            {<<"id">>, 3},
-            {<<"is_admin">>, false},
-            {<<"username">>, <<"johndoe">>}
-        ]
-    }}
+    {json, [
+        {<<"id">>, 3},
+        {<<"is_admin">>, false},
+        {<<"username">>, <<"johndoe">>}
+    ]}
 ]).
 %% > {ok, Response}
 
