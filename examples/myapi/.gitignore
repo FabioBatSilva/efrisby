@@ -1,0 +1,13 @@
+/ebin/*.beam
+/rebar
+rel/myapi
+*~
+*.orig
+*.deps.plt
+.*.swp
+/rt.work
+/rebar.cmd
+/.eunit
+/deps
+/.rebar
+env
