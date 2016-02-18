@@ -27,7 +27,12 @@
     options/2,
     options/3,
 
-    send/3
+    send/3,
+
+    get_response_headers/1,
+    get_response_status/1,
+    get_response_body/1,
+    get_response_json/1
 ]).
 
 put(Url, Expectations) ->
@@ -38,7 +43,7 @@ put(Url, Body, Expectations) ->
 
 put(Url, Body, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {body, Body},
         {method, put}
@@ -54,7 +59,7 @@ post(Url, Body, Expectations) ->
 
 post(Url, Body, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {body, Body},
         {method, post}
@@ -70,7 +75,7 @@ patch(Url, Body, Expectations) ->
 
 patch(Url, Body, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {body, Body},
         {method, patch}
@@ -86,7 +91,7 @@ delete(Url, Body, Expectations) ->
 
 delete(Url, Body, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {body, Body},
         {method, delete}
@@ -99,7 +104,7 @@ get(Url, Expectations) ->
 
 get(Url, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {method, get}
     ], Opts),
@@ -111,7 +116,7 @@ head(Url, Expectations) ->
 
 head(Url, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {method, head}
     ], Opts),
@@ -123,7 +128,7 @@ options(Url, Expectations) ->
 
 options(Url, Expectations, Opts) ->
     Config  = get_config(Opts),
-    Options = create_options([
+    Options = merge_proplists([
         {url, Url},
         {method, options}
     ], Opts),
@@ -138,28 +143,41 @@ send(Options, Expectations, Config) ->
 
     Response.
 
-create_options(Options, Overrides) ->
-    Keys = proplists:get_keys(Options ++ Overrides),
-    Func = fun(Key, List) ->
-        Default = proplists:get_value(Key, Options),
-        Element = proplists:get_value(Key, Overrides, Default),
+get_response_headers({ok, Response}) ->
+    get_response_headers(Response);
 
-        [{Key, Element} | List]
-    end,
+get_response_headers({_Status, Headers, _Body}) ->
+    Headers.
 
-    lists:foldl(Func, [], Keys).
+get_response_body({ok, Response}) ->
+    get_response_body(Response);
+
+get_response_body({_Status, _Headers, Body}) ->
+    Body.
+
+get_response_json({ok, Response}) ->
+    get_response_json(Response);
+
+get_response_json({_Status, _Headers, Body}) ->
+    efrisby_data:get(".", Body).
+
+get_response_status({ok, Response}) ->
+    get_response_status(Response);
+
+get_response_status({{_Version, StatusCode, _ReasonPhrase}, _Headers, _Body}) ->
+    StatusCode.
 
 create_request(Options, Config) ->
     Url         = get_url_option(Options, Config),
+    Headers     = get_headers_option(Options, Config),
     Body        = proplists:get_value(body, Options, null),
-    Headers     = get_option(headers, Options, Config, []),
     ContentType = get_option(content_type, Options, Config, "application/json"),
 
     case (Body) of
-        null -> {Url, efrisby_data:encode_headers(Headers)};
+        null -> {Url, Headers};
         _    -> {
             Url,
-            efrisby_data:encode_headers(Headers),
+            Headers,
             ContentType,
             efrisby_data:json_encode(Body)
         }
@@ -180,6 +198,13 @@ get_url_option(Options, Config) ->
 
     create_request_url(BaseUrl, Url).
 
+get_headers_option(Options, Config) ->
+    Values    = [{"User-Agent", "erlang/efrisby"}],
+    Overrides = get_option(headers, Options, Config, []),
+    Headers   = efrisby_data:encode_headers(merge_proplists(Values, Overrides)),
+
+    Headers.
+
 create_request_url(null, Url) ->
     Url;
 
@@ -188,3 +213,14 @@ create_request_url(BaseUrl, Url) ->
         {ok, _} -> Url;
         _       -> lists:concat([BaseUrl, Url])
     end.
+
+merge_proplists(Values, Overrides) ->
+    Keys = proplists:get_keys(Values ++ Overrides),
+    Func = fun(Key, List) ->
+        Default = proplists:get_value(Key, Values),
+        Element = proplists:get_value(Key, Overrides, Default),
+
+        [{Key, Element} | List]
+    end,
+
+    lists:foldl(Func, [], Keys).
