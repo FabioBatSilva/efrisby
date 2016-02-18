@@ -27,12 +27,7 @@
     options/2,
     options/3,
 
-    send/3,
-
-    get_response_headers/1,
-    get_response_status/1,
-    get_response_body/1,
-    get_response_json/1
+    send/3
 ]).
 
 put(Url, Expectations) ->
@@ -142,30 +137,6 @@ send(Options, Expectations, Config) ->
     ok       = efrisby_constraint:evaluate(Expectations, Response),
 
     Response.
-
-get_response_headers({ok, Response}) ->
-    get_response_headers(Response);
-
-get_response_headers({_Status, Headers, _Body}) ->
-    Headers.
-
-get_response_body({ok, Response}) ->
-    get_response_body(Response);
-
-get_response_body({_Status, _Headers, Body}) ->
-    Body.
-
-get_response_json({ok, Response}) ->
-    get_response_json(Response);
-
-get_response_json({_Status, _Headers, Body}) ->
-    efrisby_data:get(".", Body).
-
-get_response_status({ok, Response}) ->
-    get_response_status(Response);
-
-get_response_status({{_Version, StatusCode, _ReasonPhrase}, _Headers, _Body}) ->
-    StatusCode.
 
 create_request(Options, Config) ->
     Url         = get_url_option(Options, Config),

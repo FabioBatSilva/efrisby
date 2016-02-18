@@ -1,27 +1,7 @@
 -module(efrisby_tests).
 -include_lib("eunit/include/eunit.hrl").
 
-efrisby_test_() ->
-    {setup,
-        fun setup/0,
-        fun teardown/1,
-        [
-            fun get_request/0,
-            fun put_request/0,
-            fun post_request/0,
-            fun delete_request/0,
-            fun options_request/0,
-            fun context_options_request/0
-        ]
-    }.
-
-setup() ->
-    inets:start().
-
-teardown(_) ->
-    inets:stop().
-
-get_request() ->
+get_request_test() ->
     ?assertMatch({ok,_}, efrisby:get("http://httpbin.org/get?foo=bar", [
         {status, 200},
         {content_type, "application/json"},
@@ -55,7 +35,7 @@ get_request() ->
 
     ?assertMatch({{_Version, _Status, _ReasonPhrase}, _Headers, _Body}, Response).
 
-post_request() ->
+post_request_test() ->
     Body = [
         {<<"foo">>,<<"bar">>}
     ],
@@ -78,7 +58,7 @@ post_request() ->
 
     ?assertMatch({ok,_}, efrisby:post("http://httpbin.org/post", Body, Expectations, Options)).
 
-put_request() ->
+put_request_test() ->
     Body = [
         {<<"foo">>, <<"bar">>}
     ],
@@ -101,7 +81,7 @@ put_request() ->
 
     ?assertMatch({ok,_}, efrisby:put("http://httpbin.org/put", Body, Expectations, Options)).
 
-delete_request() ->
+delete_request_test() ->
     ?assertMatch({ok,_}, efrisby:delete("http://httpbin.org/delete?foo=bar", [
         {status, 200},
         {json, ".args.foo", <<"bar">>},
@@ -109,13 +89,13 @@ delete_request() ->
         {json, ".headers.Host", <<"httpbin.org">>}
     ])).
 
-options_request() ->
+options_request_test() ->
     ?assertMatch({ok,_}, efrisby:options("http://httpbin.org/get", [
         {status, 200}
     ])).
 
 
-context_options_request() ->
+context_options_request_test() ->
 
     Args = [
         {<<"foo">>, <<"bar">>}

@@ -48,7 +48,7 @@ efrisby:get("http://localhost/api/1.0/users/3.json", [
 
 ## Write Tests
 
-efrisby tests start with one by calling one of ``get``, ``post``, ``put``, ``delete``, or ``head`` to generate an HTTP request and assert the response.
+efrisby tests start with one by calling one of ``get``, ``post``, ``put``, ``options``, ``delete``, or ``head`` to generate an HTTP request and assert the response.
 
 efrisby has many built-in test assertions like :
 
@@ -77,7 +77,7 @@ eq :
     ]}
 ]).
 
-> efrisby:get_response_json(Response).
+> efrisby_resp:json(Response).
 [
     {<<"id">>, 588172},
     {<<"login">>, <<"FabioBatSilva">>},
@@ -91,7 +91,7 @@ Expectation are used to generate assertions on the response.
 These helpers make testing API response bodies and headers easy with minimal time and effort.
 
 
-#### ```{status, integer()}```
+#### ``{status, integer()}``
 
 Assert that HTTP Status code equals expectation.
 
@@ -103,7 +103,7 @@ efrisby:get("https://api.github.com/users/FabioBatSilva", [
 ```
 
 
-#### ```{headers, list()}```
+#### ``{headers, list()}``
 
 Assert the HTTP response headers.
 
@@ -117,7 +117,7 @@ efrisby:get("https://api.github.com/users/FabioBatSilva", [
 ```
 
 
-#### ```{json, bitstring() | none(), list() | integer() | atom() | bitstring()}```
+#### ``{json, bitstring() | none(), list() | integer() | atom() | bitstring()}``
 
 Tests that response JSON body contains the provided keys/values in the response.
 
@@ -138,7 +138,7 @@ efrisby:get("https://api.github.com/users/FabioBatSilva", [
 ```
 
 
-#### ```{json, bitstring() | none(), list()}```
+#### ``{json, bitstring() | none(), list()}``
 
 Tests that response JSON body contains the provided keys/values types.
 
@@ -152,10 +152,10 @@ efrisby:get("https://api.github.com/users/FabioBatSilva", [
 %% > {ok, Response}
 ```
 
-#### Using Paths with ```json``` and ```json_types```
+#### Using Paths with ``json`` and ``json_types``
 
-Both ```json``` and ```json_types``` accept a tuple containing a path.
-The path value can be a nested path separated by periods, like ```args.foo.mypath```, a simple path like ```.results``` or ```.``` to test the whole JSON value.
+Both ``json`` and ``json_types`` accept a tuple containing a path.
+The path value can be a nested path separated by periods, like ``args.foo.mypath``, a simple path like ``.results`` or ``.`` to test the whole JSON value.
 
 ```erlang
 efrisby:get("http://httpbin.org/get?foo=bar&bar=baz", [
@@ -168,5 +168,66 @@ efrisby:get("http://httpbin.org/get?foo=bar&bar=baz", [
         {<<"bar">>, <<"baz">>}
     ]}
 ]).
+%% > {ok, Response}
+```
+
+## Request Methods
+
+efrisby support your basic HTTP verbs..
+
+* ``efrisby:get(url(), expectations(), options())``
+* ``efrisby:head(url(), expectations(), options())``
+* ``efrisby:options(url(), expectations(), options())``
+* ``efrisby:put(url(), body(), expectations(), options())``
+* ``efrisby:post(url(), body(), expectations(), options())``
+* ``efrisby:patch(url(), body(), expectations(), options())``
+* ``efrisby:delete(url(), body(), expectations(), options())``
+
+
+Every request method accepts an optional list of parameters as its last argument,
+Request options control various aspects of a request including, headers, timeout settings and more.
+
+eq :
+
+```erlang
+-define(OPTIONS, [
+    {base_url, "https://myapi.local"},
+    {headers, [
+        {"Accept", "application/json"}
+    ]}
+]).
+```
+
+
+#### ``efrisby:get()``
+
+GET request.
+
+```erlang
+efrisby:get("/users/FabioBatSilva", [
+    {status, 200}
+], ?OPTIONS).
+%% > {ok, Response}
+
+#### ``efrisby:post()``
+
+GET request.
+
+```erlang
+
+Body = [
+    {<<"login">>, <<"FabioBatSilva">>},
+    {<<"name">>, <<"Fabio B. Silva">>}
+],
+
+Expectations = [
+    {status, 200},
+    {content_type, "application/json"},
+    {json_type, [
+        {id, integer}
+    ]}
+],
+
+efrisby:post("/users", Body, Expectations, ?OPTIONS).
 %% > {ok, Response}
 ```
