@@ -13,9 +13,13 @@ By adding the following dependency to your ```rebar.config``` file :
 
 ```erlang
 
-%% Rebar deps
-{deps, [
-    {efrisby, ".*", {git, "git://github.com/FabioBatSilva/efrisby.git"}}
+%% Rebar3 test profiles
+{profiles, [
+    {test, [
+        {deps, [
+            {efrisby, {git, "git://github.com/FabioBatSilva/efrisby.git", {branch, "master"}}}
+        ]}
+    ]}
 ]}.
 
 ```

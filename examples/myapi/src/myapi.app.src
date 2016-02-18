@@ -6,7 +6,8 @@
     {applications, [
         kernel,
         stdlib,
-        cowboy
+        cowboy,
+        jsx
     ]},
     {mod, {myapi_app, []}},
     {env, []}

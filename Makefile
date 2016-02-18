@@ -1,7 +1,12 @@
 REBAR := $(shell which rebar3)
 
-ifeq ($(REBAR),)
-$(error "rebar3 is not available on your PATH")
+rebar-check:
+ifndef REBAR
+	@echo "rebar3 is not available on your PATH !!"
+	@echo
+	@echo "wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3"
+	@echo "mv rebar3 /usr/local/bin/rebar3"
+	exit 1
 endif
 
 clean:
@@ -12,19 +17,19 @@ clean-deps:
 
 distclean: clean-deps
 
-dialyzer:
+dialyzer: rebar-check
 	@$(REBAR) dialyzer
 
-compile:
+compile: rebar-check
 	@$(REBAR) compile
 
-shell:
+shell: rebar-check
 	@$(REBAR) shell
 
-test:
+test: rebar-check
 	@$(REBAR) eunit
 
-test-cover:
+test-cover: rebar-check
 	@$(REBAR) eunit --cover
 
 travis: clean distclean dialyzer compile test-cover

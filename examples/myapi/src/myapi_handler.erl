@@ -37,10 +37,13 @@ response_body(Req) ->
     {Url, _}       = cowboy_req:url(Req),
     {ok, Body, _}  = cowboy_req:body(Req),
     {Headers, _}   = cowboy_req:headers(Req),
-    ResponseValues = [
-        {<<"url">>, Url},
-        {<<"body">>, Body},
-        {<<"headers">>, Headers}
-    ],
+    JsonBody       = case (jsx:is_json(Body)) of
+        true -> jsx:decode(Body);
+        _    -> null
+    end,
 
-    jsx:encode(ResponseValues).
+    jsx:encode([
+        {<<"url">>, Url},
+        {<<"json">>, JsonBody},
+        {<<"headers">>, Headers}
+    ]).
