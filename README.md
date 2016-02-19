@@ -24,7 +24,7 @@ By adding the following dependency to your ```rebar.config``` file :
 ## Basic Usage.
 
 ```erlang
-inets:start(),
+hackney:start().
 %% > ok
 
 efrisby:get("http://localhost/api/1.0/users/3.json", [
@@ -199,7 +199,7 @@ eq :
 ```
 
 
-#### ``efrisby:get()``
+#### ``efrisby:get(url(), expectations(), options())``
 
 GET request.
 
@@ -208,10 +208,11 @@ efrisby:get("/users/FabioBatSilva", [
     {status, 200}
 ], ?OPTIONS).
 %% > {ok, Response}
+```
 
-#### ``efrisby:post()``
+#### ``efrisby:post(url(), body(), expectations(), options())``
 
-GET request.
+POST request.
 
 ```erlang
 

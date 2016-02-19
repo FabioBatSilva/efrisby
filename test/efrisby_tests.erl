@@ -1,10 +1,31 @@
 -module(efrisby_tests).
 -include_lib("eunit/include/eunit.hrl").
 
-get_request_test() ->
+efrisby_test_() ->
+    {setup,
+        fun setup/0,
+        fun teardown/1,
+        [
+            fun get_request/0,
+            fun put_request/0,
+            fun post_request/0,
+            fun delete_request/0,
+            fun options_request/0,
+            fun context_options_request/0
+        ]
+    }.
+
+setup() ->
+    hackney:start().
+
+teardown(_) ->
+    hackney:stop().
+
+get_request() ->
+
     ?assertMatch({ok,_}, efrisby:get("http://httpbin.org/get?foo=bar", [
         {status, 200},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {json_types, ".", [
             {<<"args">>, list},
             {<<"url">>, bitstring},
@@ -21,7 +42,7 @@ get_request_test() ->
     {ok, Response} = efrisby:get("http://httpbin.org/get", [
         {status, 200},
         {headers, [
-            {"content-type", "application/json"}
+            {"Content-Type", <<"application/json">>}
         ]},
         {json_types, [
             {url, bitstring},
@@ -33,9 +54,10 @@ get_request_test() ->
         ]}
     ]),
 
-    ?assertMatch({{_Version, _Status, _ReasonPhrase}, _Headers, _Body}, Response).
+    ?assertMatch({_Status, _Headers, _Body}, Response).
 
-post_request_test() ->
+post_request() ->
+
     Body = [
         {<<"foo">>,<<"bar">>}
     ],
@@ -49,7 +71,7 @@ post_request_test() ->
 
     Expectations = [
         {status, 200},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {json, ".data", <<"{\"foo\":\"bar\"}">>},
         {json, ".headers.X-Extra-Header", <<"FooBar">>},
         {json, ".headers.Accept", <<"application/json">>},
@@ -58,7 +80,8 @@ post_request_test() ->
 
     ?assertMatch({ok,_}, efrisby:post("http://httpbin.org/post", Body, Expectations, Options)).
 
-put_request_test() ->
+put_request() ->
+
     Body = [
         {<<"foo">>, <<"bar">>}
     ],
@@ -72,7 +95,8 @@ put_request_test() ->
 
     Expectations = [
         {status, 200},
-        {content_type, "application/json"},
+        {body_contains, <<"httpbin.org">>},
+        {content_type, <<"application/json">>},
         {json, ".data", <<"{\"foo\":\"bar\"}">>},
         {json, ".headers.X-Extra-Header", <<"FooBar">>},
         {json, ".headers.Accept", <<"application/json">>},
@@ -81,27 +105,29 @@ put_request_test() ->
 
     ?assertMatch({ok,_}, efrisby:put("http://httpbin.org/put", Body, Expectations, Options)).
 
-delete_request_test() ->
+delete_request() ->
+
     ?assertMatch({ok,_}, efrisby:delete("http://httpbin.org/delete?foo=bar", [
         {status, 200},
         {json, ".args.foo", <<"bar">>},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {json, ".headers.Host", <<"httpbin.org">>}
     ])).
 
-options_request_test() ->
+options_request() ->
+
     ?assertMatch({ok,_}, efrisby:options("http://httpbin.org/get", [
         {status, 200}
     ])).
 
 
-context_options_request_test() ->
+context_options_request() ->
 
     Args = [
         {<<"foo">>, <<"bar">>}
     ],
 
-    Config = [
+    Options = [
         {base_url, "http://httpbin.org"},
         {headers , [
             {"Accept", "application/json"},
@@ -109,14 +135,10 @@ context_options_request_test() ->
         ]}
     ],
 
-    Options = [
-        {config, Config}
-    ],
-
     Expectations = [
         {status, 200},
         {json, ".args", Args},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {json, ".headers.X-Extra-Header", <<"FooBar">>},
         {json, ".headers.Accept", <<"application/json">>}
     ],

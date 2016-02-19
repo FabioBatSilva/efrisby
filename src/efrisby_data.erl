@@ -4,7 +4,6 @@
 -export([
     encode_headers/1,
     json_encode/1,
-    get_type/1,
     type_of/1,
     get/2
 ]).
@@ -18,19 +17,10 @@ encode_headers(Headers) ->
 json_encode(Value) ->
     jsx:encode(Value).
 
+get(Path, Value) when erlang:is_binary(Value) ->
+    get(Path, jsx:decode(Value));
+
 get(Path, Value) ->
-    get(Path, Value, get_type(Value)).
-
-get(Path, Value, string) ->
-    get(Path, erlang:list_to_binary(Value), bitstring);
-
-get(Path, Value, bitstring) ->
-    get_data(Path, jsx:decode(Value));
-
-get(Path, Value, tuple) ->
-    get_data(Path, Value);
-
-get(Path, Value, list) ->
     get_data(Path, Value).
 
 get_data(".", Value) ->
@@ -79,21 +69,8 @@ type_of(Val) when is_tuple(Val)     -> tuple;
 type_of(Val) when is_bitstring(Val) -> bitstring;
 type_of(Val) when is_binary(Val)    -> binary;
 type_of(Val) when is_boolean(Val)   -> boolean;
-type_of(Val) when is_function(Val)  -> function;
-type_of(Val) when is_pid(Val)       -> pid;
-type_of(Val) when is_port(Val)      -> port;
-type_of(Val) when is_reference(Val) -> reference;
 type_of(Val) when is_atom(Val)      -> atom;
 type_of(_Val)                       -> unknown.
-
-get_type(Value) when erlang:is_list(Value) ->
-    case is_string(Value) of
-        true -> string;
-        _    -> list
-    end;
-
-get_type(Val) ->
-    type_of(Val).
 
 is_integer_binary(B) ->
     try
@@ -102,7 +79,3 @@ is_integer_binary(B) ->
     catch error:badarg ->
         false
     end.
-
-is_string([]) -> true;
-is_string([H|T]) -> is_integer(H) andalso H>=0 andalso is_string(T);
-is_string(_) -> false.

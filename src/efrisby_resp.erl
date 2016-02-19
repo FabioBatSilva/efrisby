@@ -10,8 +10,8 @@
     json/2
 ]).
 
-header(Name, Response) when erlang:is_binary(Name) ->
-    header(erlang:binary_to_list(Name), Response);
+header(Name, Response) when erlang:is_list(Name) ->
+    header(erlang:list_to_binary(Name), Response);
 
 header(Name, Response) ->
     Headers = headers(Response),
@@ -29,25 +29,22 @@ body({ok, Response}) ->
     body(Response);
 
 body({_Status, _Headers, Body}) ->
-    case (erlang:is_binary(Body)) of
-        true -> erlang:binary_to_list(Body);
-        _    -> Body
-    end.
+    Body.
 
 json(Path, {ok, Response}) ->
     json(Path, Response);
 
-json(Path, {_Status, _Headers, Body}) ->
-    efrisby_data:get(Path, Body).
+json(Path, Response) ->
+    efrisby_data:get(Path, body(Response)).
 
 json({ok, Response}) ->
     json(Response);
 
-json({_Status, _Headers, Body}) ->
-    efrisby_data:get(".", Body).
+json(Response) ->
+    efrisby_data:get(".", body(Response)).
 
 status({ok, Response}) ->
     status(Response);
 
-status({{_Version, StatusCode, _ReasonPhrase}, _Headers, _Body}) ->
+status({StatusCode, _Headers, _Body}) ->
     StatusCode.

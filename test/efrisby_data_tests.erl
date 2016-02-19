@@ -51,11 +51,16 @@ get_data_from_json_binary_test() ->
 
     ?assertEqual(Expected, Actual).
 
-get_data_from_json_string_test() ->
-    Body     = "{\"args\":{\"foo\":\"bar\"}}",
-    Actual   = efrisby_data:get(".args", Body),
-    Expected = [
-        {<<"foo">>,<<"bar">>}
-    ],
 
-    ?assertEqual(Expected, Actual).
+type_of_test() ->
+    ?assertEqual(integer, efrisby_data:type_of(1)),
+    ?assertEqual(float, efrisby_data:type_of(1.1)),
+    ?assertEqual(list, efrisby_data:type_of([])),
+    ?assertEqual(tuple, efrisby_data:type_of({})),
+    ?assertEqual(bitstring, efrisby_data:type_of(<<"">>)),
+
+
+    ?assertEqual(boolean, efrisby_data:type_of(true)),
+    ?assertEqual(atom, efrisby_data:type_of('myatom')),
+    ?assertEqual(integer, efrisby_data:type_of(1)),
+    ?assertEqual(unknown, efrisby_data:type_of(erlang:make_ref())).

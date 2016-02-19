@@ -16,7 +16,7 @@
     {applications, [
         kernel,
         stdlib,
-        inets
+        hackney
     ]},
 
      % Package info

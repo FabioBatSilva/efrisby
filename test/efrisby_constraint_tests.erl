@@ -4,18 +4,18 @@
 
 evaluate_content_type_test() ->
 
-    ExpectationOk   = {content_type, "application/json"},
-    ExpectationFail = {content_type, "application/xml"},
+    ExpectationOk   = {content_type, <<"application/json">>},
+    ExpectationFail = {content_type, <<"application/xml">>},
     Response        = {
-        {"HTTP/1.1",200,"OK"},
-        [ {"content-type", "application/json"} ],
-        "[1,2,3]"
+        200,
+        [ {<<"Content-Type">>, <<"application/json">>} ],
+        <<"[1,2,3]">>
     },
 
     ExpectedException = {efrisby_expectation_failed, [
         {context,{content_type}},
-        {expected,"application/xml"},
-        {actual,"application/json"}
+        {expected,<<"application/xml">>},
+        {actual,<<"application/json">>}
     ]},
 
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),
@@ -26,9 +26,9 @@ evaluate_status_test() ->
     ExpectationOk   = {status, 200},
     ExpectationFail = {status, 202},
     Response        = {
-        {"HTTP/1.1",200,"OK"},
-        [ {"content-type","application/json"} ],
-        "[1,2,3]"
+        200,
+        [ {<<"Content-Type">>, <<"application/json">>} ],
+        <<"[1,2,3]">>
     },
     ExpectedException = {efrisby_expectation_failed,[
         {context,{status}},
@@ -44,9 +44,9 @@ evaluate_json_test() ->
     ExpectationOk   = {json, [1,2,3]},
     ExpectationFail = {json, ".unknown", [1,2,3]},
     Response        = {
-        {"HTTP/1.1",200,"OK"},
-        [ {"content-type","application/json"} ],
-        "[1,2,3]"
+        200,
+        [ {<<"Content-Type">>, <<"application/json">>} ],
+        <<"[1,2,3]">>
     },
     ExpectedException = {efrisby_expectation_failed,[
         {context,{json,".unknown"}},
@@ -66,9 +66,9 @@ evaluate_json_types_test() ->
         {<<"args">>, integer}
     ]},
     Response        = {
-        {"HTTP/1.1",200,"OK"},
-        [ {"content-type","application/json"} ],
-        "{\"args\":{\"foo\":\"bar\"}}"
+        200,
+        [ {<<"Content-Type">>, <<"application/json">>} ],
+        <<"{\"args\":{\"foo\":\"bar\"}}">>
     },
     ExpectedException = {efrisby_expectation_failed, [
         {context,{json_types,"args"}},
@@ -84,14 +84,14 @@ evaluate_body_contains_test() ->
     ExpectationOk   = {body_contains, "OK"},
     ExpectationFail = {body_contains, "NOT-OK"},
     Response        = {
-        {"HTTP/1.1",200,"OK"},
-        [ {"text/plain"} ],
-        "OK,OK,OK"
+        200,
+        [ {<<"Content-Type">>, <<"text/plain">>} ],
+        <<"OK,OK,OK">>
     },
     ExpectedException = {efrisby_expectation_failed,[
         {context,{body_contains}},
-        {expected,"NOT-OK"},
-        {actual,"OK,OK,OK"}
+        {expected, "NOT-OK"},
+        {actual, "OK,OK,OK"}
     ]},
 
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),
@@ -104,9 +104,9 @@ evaluate_expectation_list_test() ->
     Response        = {
         ok,
         {
-            {"HTTP/1.1", 200, "OK"},
+            200,
             [ ],
-            "OK"
+            <<"OK">>
         }
     },
     ExpectedException = {efrisby_expectation_failed,[

@@ -27,7 +27,8 @@
     options/2,
     options/3,
 
-    send/3
+    send/4,
+    send/5
 ]).
 
 put(Url, Expectations) ->
@@ -36,15 +37,8 @@ put(Url, Expectations) ->
 put(Url, Body, Expectations) ->
     put(Url, Body, Expectations, []).
 
-put(Url, Body, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {body, Body},
-        {method, put}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+put(Url, Body, Expectations, Options) ->
+    send(put, Url, Body, Expectations, Options).
 
 post(Url, Expectations) ->
     post(Url, null, Expectations).
@@ -52,15 +46,8 @@ post(Url, Expectations) ->
 post(Url, Body, Expectations) ->
     post(Url, Body, Expectations, []).
 
-post(Url, Body, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {body, Body},
-        {method, post}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+post(Url, Body, Expectations, Options) ->
+    send(post, Url, Body, Expectations, Options).
 
 patch(Url, Expectations) ->
     patch(Url, null, Expectations).
@@ -68,15 +55,8 @@ patch(Url, Expectations) ->
 patch(Url, Body, Expectations) ->
     patch(Url, Body, Expectations, []).
 
-patch(Url, Body, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {body, Body},
-        {method, patch}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+patch(Url, Body, Expectations, Options) ->
+    send(patch, Url, Body, Expectations, Options).
 
 delete(Url, Expectations) ->
     delete(Url, null, Expectations).
@@ -84,102 +64,64 @@ delete(Url, Expectations) ->
 delete(Url, Body, Expectations) ->
     delete(Url, Body, Expectations, []).
 
-delete(Url, Body, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {body, Body},
-        {method, delete}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+delete(Url, Body, Expectations, Options) ->
+    send(delete, Url, Body, Expectations, Options).
 
 get(Url, Expectations) ->
     get(Url, Expectations, []).
 
-get(Url, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {method, get}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+get(Url, Expectations, Options) ->
+    send(get, Url, Expectations, Options).
 
 head(Url, Expectations) ->
     head(Url, Expectations, []).
 
-head(Url, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {method, head}
-    ], Opts),
-
-    send(Options, Expectations, Config).
+head(Url, Expectations, Options) ->
+    send(head, Url, Expectations, Options).
 
 options(Url, Expectations) ->
     options(Url, Expectations, []).
 
-options(Url, Expectations, Opts) ->
-    Config  = get_config(Opts),
-    Options = merge_proplists([
-        {url, Url},
-        {method, options}
-    ], Opts),
+options(Url, Expectations, Options) ->
+    send(options, Url, Expectations, Options).
 
-    send(Options, Expectations, Config).
+send(Method, Url, Expectations, Options) ->
+    send(Method, Url, null, Expectations, Options).
 
-send(Options, Expectations, Config) ->
-    Request  = create_request(Options, Config),
-    Method   = proplists:get_value(method, Options),
-    Response = httpc:request(Method, Request, [], []),
+send(Method, Url, Body, Expectations, Options) ->
+    BaseUrl  = proplists:get_value(base_url, Options),
+    Uri      = request_uri(BaseUrl, Url),
+    Headers  = request_headers(Options),
+    Payload  = request_payload(Body),
+
+    Response = send_request(Method, Uri,  Headers, Payload, Options),
     ok       = efrisby_constraint:evaluate(Expectations, Response),
 
     Response.
 
-create_request(Options, Config) ->
-    Url         = get_url_option(Options, Config),
-    Headers     = get_headers_option(Options, Config),
-    Body        = proplists:get_value(body, Options, null),
-    ContentType = get_option(content_type, Options, Config, "application/json"),
+send_request(Method, Uri,  Headers, Payload, _Options) ->
+    {ok, Status, RespHeaders, Ref} = hackney:request(Method, Uri,  Headers, Payload, []),
+    {ok, Body}                     = hackney:body(Ref),
 
+    {ok, {Status, RespHeaders, Body}}.
+
+request_payload(Body) ->
     case (Body) of
-        null -> {Url, Headers};
-        _    -> {
-            Url,
-            Headers,
-            ContentType,
-            efrisby_data:json_encode(Body)
-        }
+        null -> <<"">>;
+        _    -> efrisby_data:json_encode(Body)
     end.
 
-get_config(Options) ->
-    proplists:get_value(config, Options, []).
+request_headers(Options) ->
+    Defaults = [{"User-Agent", "erlang/efrisby"}, {"Content-Type", "application/json"}],
+    Headers  = proplists:get_value(headers, Options, []),
+    Merged   = merge_proplists(Defaults, Headers),
 
-get_option(Name, Options, Config, Default) ->
-    ConfigHeaders  = proplists:get_value(Name, Config, Default),
-    OptionsHeaders = proplists:get_value(Name, Options, ConfigHeaders),
+    efrisby_data:encode_headers(Merged).
 
-    OptionsHeaders.
-
-get_url_option(Options, Config) ->
-    Url     = proplists:get_value(url, Options),
-    BaseUrl = proplists:get_value(base_url, Config, null),
-
-    create_request_url(BaseUrl, Url).
-
-get_headers_option(Options, Config) ->
-    Values    = [{"User-Agent", "erlang/efrisby"}],
-    Overrides = get_option(headers, Options, Config, []),
-    Headers   = efrisby_data:encode_headers(merge_proplists(Values, Overrides)),
-
-    Headers.
-
-create_request_url(null, Url) ->
+request_uri(undefined, Url) ->
     Url;
 
-create_request_url(BaseUrl, Url) ->
+request_uri(BaseUrl, Url) ->
     case (http_uri:parse(Url)) of
         {ok, _} -> Url;
         _       -> lists:concat([BaseUrl, Url])

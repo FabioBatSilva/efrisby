@@ -7,18 +7,17 @@
 
 -spec evaluate( tuple() , tuple()) -> 'ok' | none().
 
-
 evaluate([], {ok, _}) ->
     ok;
 
-evaluate(_Expectations, {error, Error}) ->
+evaluate(_Expectations, {error, _} = Error) ->
     fail(ok, Error, {request});
 
 evaluate(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
     lists:foreach(fun(Expec) -> evaluate(Expec, Response) end, Expectations);
 
 evaluate({content_type, ExpectedContentType}, Response) ->
-    assert_equal(ExpectedContentType, efrisby_resp:header("content-type", Response), {content_type});
+    assert_equal(ExpectedContentType, efrisby_resp:header("Content-Type", Response), {content_type});
 
 evaluate({json, ExpectedJson}, Response) ->
     evaluate({json, ".", ExpectedJson}, Response);
@@ -51,8 +50,11 @@ evaluate({json_types, RootPath, [{SubPath, ExpectedType}|_List]}, Response) ->
 
     assert_equal(ExpectedType, ActualType, {json_types, ActualPath});
 
+evaluate({body_contains, ExpectedBody}, Response) when erlang:is_binary(ExpectedBody) ->
+    evaluate({body_contains, erlang:binary_to_list(ExpectedBody)}, Response);
+
 evaluate({body_contains, ExpectedBody}, Response) ->
-    assert_contains(ExpectedBody, efrisby_resp:body(Response), {body_contains});
+    assert_contains(ExpectedBody, erlang:binary_to_list(efrisby_resp:body(Response)), {body_contains});
 
 evaluate({status, ExpectedStatus}, Response) ->
     assert_equal(ExpectedStatus, efrisby_resp:status(Response), {status}).
