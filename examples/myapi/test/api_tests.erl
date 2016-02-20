@@ -8,25 +8,41 @@
     ]}
 ]).
 
-get_request_test() ->
-    ?assertMatch({ok,_}, efrisby:get("http://localhost:8080/", [
+api_test_() ->
+    {setup,
+        fun setup/0,
+        fun teardown/1,
+        [
+            fun get_request/0,
+            fun post_request/0
+        ]
+    }.
+
+setup() ->
+    hackney:start().
+
+teardown(_) ->
+    hackney:stop().
+
+get_request() ->
+    ?assertMatch({ok,_}, efrisby:get("/", [
         {status, 200},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {json, [
             {url, <<"http://localhost:8080/">>}
         ]}
     ], ?API_CONFIG)).
 
-post_request_test() ->
+post_request() ->
     Json = [
         {<<"foo">>, <<"bar">>}
     ],
 
     Expectations = [
         {status, 200},
-        {content_type, "application/json"},
+        {content_type, <<"application/json">>},
         {headers, [
-            {"content-type", "application/json"}
+            {<<"content-type">>, <<"application/json">>}
         ]},
         {json_types, [
             {json, list}
@@ -37,4 +53,4 @@ post_request_test() ->
         ]}
     ],
 
-    ?assertMatch({ok,_}, efrisby:post("http://localhost:8080/", Json, Expectations, ?API_CONFIG)).
+    ?assertMatch({ok,_}, efrisby:post("/", Json, Expectations, ?API_CONFIG)).

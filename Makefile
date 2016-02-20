@@ -35,6 +35,6 @@ test-cover: rebar-check
 test-cover-html: rebar-check
 	@$(REBAR) do eunit --cover , cover
 
-travis: clean distclean dialyzer compile test-cover
+travis: clean distclean compile test-cover
 
 .PHONY: clean deps compile dialyzer test-cover test-cover-html
