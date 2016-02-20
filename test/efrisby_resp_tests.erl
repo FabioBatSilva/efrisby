@@ -45,8 +45,8 @@ headers_test() ->
     Response = ?SIMPLE_RESPONSE,
     Result   = ?SIMPLE_RESULT,
     Expected = [
-        {<<"Content-Type">>, <<"application/json">>},
-        {<<"Content-Length">>, <<"13">>}
+        {<<"content-type">>, <<"application/json">>},
+        {<<"content-length">>, <<"13">>}
     ],
 
     ?assertEqual(Expected, efrisby_resp:headers(Response)),
@@ -57,8 +57,8 @@ header_test() ->
     Response = ?SIMPLE_RESPONSE,
     Result   = ?SIMPLE_RESULT,
 
-    ?assertEqual(<<"application/json">>, efrisby_resp:header("Content-Type", Response)),
-    ?assertEqual(<<"application/json">>, efrisby_resp:header("Content-Type", Result)),
+    ?assertEqual(<<"application/json">>, efrisby_resp:header("content-type", Response)),
+    ?assertEqual(<<"application/json">>, efrisby_resp:header("content-type", Result)),
 
-    ?assertEqual(<<"13">>, efrisby_resp:header(<<"Content-Length">>, Response)),
-    ?assertEqual(<<"13">>, efrisby_resp:header(<<"Content-Length">>, Result)).
+    ?assertEqual(<<"13">>, efrisby_resp:header(<<"content-length">>, Response)),
+    ?assertEqual(<<"13">>, efrisby_resp:header(<<"content-length">>, Result)).

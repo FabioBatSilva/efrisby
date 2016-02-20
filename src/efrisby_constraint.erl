@@ -17,7 +17,7 @@ evaluate(Expectations, {ok, Response}) when erlang:is_list(Expectations) ->
     lists:foreach(fun(Expec) -> evaluate(Expec, Response) end, Expectations);
 
 evaluate({content_type, ExpectedContentType}, Response) ->
-    assert_equal(ExpectedContentType, efrisby_resp:header("Content-Type", Response), {content_type});
+    assert_equal(ExpectedContentType, efrisby_resp:header("content-type", Response), {content_type});
 
 evaluate({json, ExpectedJson}, Response) ->
     evaluate({json, ".", ExpectedJson}, Response);

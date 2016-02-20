@@ -42,7 +42,7 @@ get_request() ->
     {ok, Response} = efrisby:get("http://httpbin.org/get", [
         {status, 200},
         {headers, [
-            {"Content-Type", <<"application/json">>}
+            {"content-type", <<"application/json">>}
         ]},
         {json_types, [
             {url, bitstring},

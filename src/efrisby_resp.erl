@@ -23,7 +23,12 @@ headers({ok, Response}) ->
     headers(Response);
 
 headers({_Status, Headers, _Body}) ->
-    Headers.
+    lists:keymap(fun(Key) ->
+        List  = erlang:binary_to_list(Key),
+        Lower = string:to_lower(List),
+
+        erlang:list_to_binary(Lower)
+    end, 1, Headers).
 
 body({ok, Response}) ->
     body(Response);
