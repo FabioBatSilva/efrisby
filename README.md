@@ -14,7 +14,7 @@ By adding the following dependency to your ```rebar.config``` file :
 {profiles, [
     {test, [
         {deps, [
-            {efrisby, {git, "git://github.com/FabioBatSilva/efrisby.git", {branch, "master"}}}
+            {efrisby, "0.1.0"}
         ]}
     ]}
 ]}.
