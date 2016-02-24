@@ -28,7 +28,7 @@ You have to start all ``efrisby`` dependencies before using any of the functions
 
 To start in the console run:
 
-```erlang-repl
+```erlang
 
 $ rebar3 shell
 
@@ -36,7 +36,7 @@ $ rebar3 shell
 
 And run the following command to start all of the application it depends on:
 
-```erlang-repl
+```erlang
 
    > application:ensure_all_started(efrisby).
 %% > ok,[idna,mimerl,certifi,hackney,efrisby]}
@@ -48,19 +48,19 @@ And run the following command to start all of the application it depends on:
 %% > ok
 
    > efrisby:get("http://localhost/api/1.0/users/3.json", [
-    {status, 200},
-    {content_type, "application/json"},
-    {json_types, [
-        {<<"id">>, integer},
-        {<<"is_admin">>, boolean},
-        {<<"username">>, bitstring}
-    ]},
-    {json, [
-        {<<"id">>, 3},
-        {<<"is_admin">>, false},
-        {<<"username">>, <<"johndoe">>}
-    ]}
-]).
+        {status, 200},
+        {content_type, "application/json"},
+        {json_types, [
+            {<<"id">>, integer},
+            {<<"is_admin">>, boolean},
+            {<<"username">>, bitstring}
+        ]},
+        {json, [
+            {<<"id">>, 3},
+            {<<"is_admin">>, false},
+            {<<"username">>, <<"johndoe">>}
+        ]}
+    ]).
 %% > {ok, Response}
 
 ```
