@@ -14,7 +14,7 @@ By adding the following dependency to your ```rebar.config``` file :
 {profiles, [
     {test, [
         {deps, [
-            {efrisby, "0.1.0"}
+            {efrisby, "0.2.0"}
         ]}
     ]}
 ]}.
@@ -38,16 +38,16 @@ And run the following command to start all of the application it depends on:
 
 ```erlang-repl
 
-1>>application:ensure_all_started(efrisby).
-ok,[idna,mimerl,certifi,hackney,efrisby]}
+   > application:ensure_all_started(efrisby).
+%% > ok,[idna,mimerl,certifi,hackney,efrisby]}
 ```
 
 
 ```erlang
-application:ensure_all_started(efrisby).
+   > application:ensure_all_started(efrisby).
 %% > ok
 
-efrisby:get("http://localhost/api/1.0/users/3.json", [
+   > efrisby:get("http://localhost/api/1.0/users/3.json", [
     {status, 200},
     {content_type, "application/json"},
     {json_types, [
