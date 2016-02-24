@@ -28,7 +28,7 @@ You have to start all ``efrisby`` dependencies before using any of the functions
 
 To start in the console run:
 
-```erlang
+```erlang-repl
 
 $ rebar3 shell
 
