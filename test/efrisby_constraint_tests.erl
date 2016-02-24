@@ -57,6 +57,18 @@ evaluate_json_test() ->
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),
     ?assertThrow(ExpectedException, efrisby_constraint:evaluate(ExpectationFail, Response)).
 
+evaluate_json_path_test() ->
+    Expectation = {json, <<"args">>, [
+        {foo, <<"bar">>}
+    ]},
+    Response    = {
+        200,
+        [],
+        <<"{\"args\":{\"foo\":\"bar\"}}">>
+    },
+
+    ?assertEqual(ok, efrisby_constraint:evaluate(Expectation, Response)).
+
 evaluate_json_types_test() ->
     ExpectationOk   = {json_types, ".", [
         {<<"args">>, list},
@@ -78,6 +90,19 @@ evaluate_json_types_test() ->
 
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),
     ?assertThrow(ExpectedException, efrisby_constraint:evaluate(ExpectationFail, Response)).
+
+evaluate_json_types_undefined_test() ->
+    Expectation  = {json_types, ".", [
+        {<<"foo">>, undefined},
+        {<<"args.bar">>, undefined}
+    ]},
+    Response = {
+        200,
+        [],
+        <<"{\"args\":{\"foo\":\"bar\"}}">>
+    },
+
+    ?assertEqual(ok, efrisby_constraint:evaluate(Expectation, Response)).
 
 evaluate_body_contains_test() ->
 
@@ -116,4 +141,27 @@ evaluate_expectation_list_test() ->
     ]},
 
     ?assertEqual(ok, efrisby_constraint:evaluate(ExpectationOk, Response)),
+    ?assertThrow(ExpectedException, efrisby_constraint:evaluate(ExpectationFail, Response)).
+
+evaluate_expectation_empty_list_test() ->
+    Response = {
+        ok,
+        {
+            200,
+            [ ],
+            <<"OK">>
+        }
+    },
+
+    ?assertEqual(ok, efrisby_constraint:evaluate([], Response)).
+
+evaluate_response_failure_test() ->
+    ExpectationFail   = [{status, 200}],
+    Response          = {error,nxdomain},
+    ExpectedException = {efrisby_expectation_failed, [
+        {context,{request}},
+        {expected,ok},
+        {actual,{error,nxdomain}}
+    ]},
+
     ?assertThrow(ExpectedException, efrisby_constraint:evaluate(ExpectationFail, Response)).
