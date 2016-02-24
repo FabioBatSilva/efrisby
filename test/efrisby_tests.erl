@@ -11,6 +11,7 @@ efrisby_test_() ->
             fun post_request/0,
             fun delete_request/0,
             fun options_request/0,
+            fun expectation_failure/0,
             fun context_options_request/0
         ]
     }.
@@ -120,6 +121,26 @@ options_request() ->
         {status, 200}
     ])).
 
+expectation_failure() ->
+    ExpectedException = {efrisby_expectation_failed, [
+        {context,{content_type}},
+        {expected,<<"application/xml">>},
+        {actual,<<"application/json">>}
+    ]},
+
+    Expectations = [
+        {status, 200},
+        {content_type, <<"application/xml">>}
+    ],
+
+    Options = [
+        {failure_callback, fun({E, Resp}) ->
+            ?assertEqual(200, efrisby_resp:status(Resp)),
+            ?assertEqual(ExpectedException, E)
+        end}
+    ],
+
+    ?assertThrow(ExpectedException, efrisby:get("http://httpbin.org/get", Expectations, Options)).
 
 context_options_request() ->
 

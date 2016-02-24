@@ -191,6 +191,8 @@ eq :
 
 ```erlang
 -define(OPTIONS, [
+    {failure_callback, fun erlang:display/1},
+    {http_options, [{timeout, 150000}]},
     {base_url, "https://myapi.local"},
     {headers, [
         {"Accept", "application/json"}
@@ -198,6 +200,10 @@ eq :
 ]).
 ```
 
+* ``http_options`` Options for hackney http client (see https://github.com/benoitc/hackney)
+* ``failure_callback`` Assertion failure callback function
+* ``base_url`` Base request url
+* ``headers`` Http headers
 
 #### ``efrisby:get(url(), expectations(), options())``
 

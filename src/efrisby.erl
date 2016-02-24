@@ -95,15 +95,25 @@ send(Method, Url, Body, Expectations, Options) ->
     Payload  = request_payload(Body),
 
     Response = send_request(Method, Uri,  Headers, Payload, Options),
-    ok       = efrisby_constraint:evaluate(Expectations, Response),
+    ok       = evaluate_response(Expectations, Response, Options),
 
     Response.
 
-send_request(Method, Uri,  Headers, Payload, _Options) ->
-    {ok, Status, RespHeaders, Ref} = hackney:request(Method, Uri,  Headers, Payload, []),
+send_request(Method, Uri,  Headers, Payload, Options) ->
+    HackneyOptions                 = proplists:get_value(http_options, Options, []),
+    {ok, Status, RespHeaders, Ref} = hackney:request(Method, Uri,  Headers, Payload, HackneyOptions),
     {ok, Body}                     = hackney:body(Ref),
 
     {ok, {Status, RespHeaders, Body}}.
+
+evaluate_response(Expectations, Response, Options) ->
+    try efrisby_constraint:evaluate(Expectations, Response) of
+        _ -> ok
+    catch
+        throw:E ->
+            erlang:apply(failure_callback(Options), [{E, Response}]),
+            erlang:throw(E)
+    end.
 
 request_payload(Body) ->
     case (Body) of
@@ -117,6 +127,12 @@ request_headers(Options) ->
     Merged   = merge_proplists(Defaults, Headers),
 
     efrisby_data:encode_headers(Merged).
+
+failure_callback(Options) ->
+    Default  = fun(_E, _R) -> ok end,
+    Callback = proplists:get_value(failure_callback, Options, Default),
+
+    Callback.
 
 request_uri(undefined, Url) ->
     Url;
