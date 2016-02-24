@@ -19,10 +19,12 @@ api_test_() ->
     }.
 
 setup() ->
-    hackney:start().
+    application:ensure_all_started(efrisby),
+    application:ensure_all_started(myapi).
 
 teardown(_) ->
-    hackney:stop().
+    application:stop(efrisby),
+    application:stop(myapi).
 
 get_request() ->
     ?assertMatch({ok,_}, efrisby:get("/", [
