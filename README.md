@@ -29,15 +29,12 @@ You have to start all ``efrisby`` dependencies before using any of the functions
 To start in the console run:
 
 ```erlang-repl
-
 $ rebar3 shell
-
 ```
 
 And run the following command to start all of the application it depends on:
 
 ```erlang
-
    > application:ensure_all_started(efrisby).
 %% > ok,[idna,mimerl,certifi,hackney,efrisby]}
 ```
