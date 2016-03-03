@@ -41,9 +41,6 @@ And run the following command to start all of the application it depends on:
 
 
 ```erlang
-   > application:ensure_all_started(efrisby).
-%% > ok
-
    > efrisby:get("http://localhost/api/1.0/users/3.json", [
         {status, 200},
         {content_type, "application/json"},
