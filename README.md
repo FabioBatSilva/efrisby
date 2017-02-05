@@ -152,7 +152,7 @@ efrisby:get("https://api.github.com/users/FabioBatSilva", [
 ```
 
 
-#### ``{json, bitstring() | none(), list()}``
+#### ``{json_types, bitstring() | none(), list()}``
 
 Tests that response JSON body contains the provided keys/values types.
 
